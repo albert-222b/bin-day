@@ -2,7 +2,7 @@
   "name": "Bin Day — Merri-bek",
   "short_name": "Bin Day",
   "description": "Waste collection dashboard for Merri-bek City Council residents",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#0C0C0C",
   "theme_color": "#0C0C0C",
