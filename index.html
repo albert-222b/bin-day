@@ -32,7 +32,7 @@
     text-transform: uppercase; color: var(--text-muted);
     font-family: 'DM Mono', monospace;
   }
-
+ 
   /* ── Header ─────────────────────────── */
   .header {
     padding: 32px 24px 20px;
@@ -51,10 +51,10 @@
     opacity: 0; transition: opacity 0.15s; font-size: 12px;
   }
   .header .address:hover .edit-icon { opacity: 1; }
-
+ 
   /* ── Content ────────────────────────── */
   .content { padding: 24px; max-width: 560px; }
-
+ 
   /* ── Bin Cards ──────────────────────── */
   .bin-card {
     border: 1px solid var(--border); border-radius: 12px;
@@ -71,25 +71,31 @@
     display: flex; justify-content: space-between; align-items: flex-start;
   }
   .bin-card .bin-name {
-    font-size: 15px; font-weight: 700; color: #FFF;
+    font-size: 17px; font-weight: 700; color: #FFF;
     display: flex; align-items: center; gap: 8px;
   }
   .bin-card .bin-meta {
-    font-size: 12px; color: var(--text-muted);
-    font-family: 'DM Mono', monospace; margin-top: 4px;
+    font-size: 13px; color: var(--text-muted);
+    font-family: 'DM Mono', monospace; margin-top: 5px;
   }
   .bin-card .bin-date {
-    font-size: 14px; color: #AAA; margin-top: 10px;
+    font-size: 15px; color: #AAA; margin-top: 10px;
   }
+  .bin-card.this-week {
+    border-color: color-mix(in srgb, var(--bin-color) 35%, transparent);
+    background: color-mix(in srgb, var(--bin-color) 5%, var(--surface));
+  }
+  .bin-card.this-week .accent-bar { width: 5px; }
+  .bin-card.this-week .bin-date { color: #DDD; }
   .countdown {
-    display: inline-block; padding: 4px 10px; border-radius: 100px;
-    font-size: 12px; font-weight: 500;
+    display: inline-block; padding: 5px 12px; border-radius: 100px;
+    font-size: 13px; font-weight: 500;
     font-family: 'DM Mono', monospace; letter-spacing: 0.02em;
     background: #1E1E1E; color: var(--text-dim); border: 1px solid #2A2A2A;
     white-space: nowrap;
   }
   .countdown.soon { border-color: color-mix(in srgb, var(--c) 30%, transparent); }
-
+ 
   /* ── Today Banner ───────────────────── */
   .today-banner {
     background: linear-gradient(135deg, #1a2e1a, var(--surface));
@@ -99,7 +105,7 @@
   }
   .today-banner .pulse { animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
-
+ 
   /* ── Timeline ───────────────────────── */
   .timeline {
     background: var(--surface); border: 1px solid var(--border);
@@ -128,7 +134,7 @@
     font-size: 10px; color: var(--accent);
     font-family: 'DM Mono', monospace; flex-shrink: 0;
   }
-
+ 
   /* ── Setup Screen ───────────────────── */
   .setup-overlay {
     position: fixed; inset: 0; background: var(--bg);
@@ -179,7 +185,7 @@
   }
   .council-link a { color: var(--accent); text-decoration: none; }
   .council-link a:hover { text-decoration: underline; }
-
+ 
   /* ── Footer ─────────────────────────── */
   .footer {
     margin-top: 32px; padding-top: 20px;
@@ -197,9 +203,9 @@
 </style>
 </head>
 <body>
-
+ 
 <div id="app"></div>
-
+ 
 <script>
 // ── Config ───────────────────────────────────────────────────
 const STORAGE_KEY = 'merribek-bins-config';
@@ -207,14 +213,14 @@ const DAY_MS = 86400000;
 const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const SHORT_MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-
+ 
 const BIN_DEFS = [
   { id:'general', name:'General Rubbish', lid:'Red lid', freq:'Weekly', color:'#DC2626', emoji:'🗑️', cycle:1 },
   { id:'fogo', name:'Food & Garden Organics', lid:'Lime green lid', freq:'Weekly', color:'#65A30D', emoji:'🌿', cycle:1 },
   { id:'recycling', name:'Mixed Recycling', lid:'Yellow lid', freq:'Fortnightly', color:'#CA8A04', emoji:'♻️', cycle:2 },
   { id:'glass', name:'Glass Recycling', lid:'Purple lid', freq:'Every 4 weeks', color:'#9333EA', emoji:'🫙', cycle:4 },
 ];
-
+ 
 // Public holidays — no collection (only matters if they fall on your collection day)
 const NO_COLLECTION_2026 = [
   '2026-01-01', // New Year's Day
@@ -222,7 +228,7 @@ const NO_COLLECTION_2026 = [
   '2026-04-25', // Anzac Day
   '2026-12-25', // Christmas Day
 ];
-
+ 
 // ── Storage ──────────────────────────────────────────────────
 function loadConfig() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch { return null; }
@@ -230,7 +236,7 @@ function loadConfig() {
 function saveConfig(cfg) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(cfg));
 }
-
+ 
 // ── Date Helpers ─────────────────────────────────────────────
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -271,10 +277,10 @@ function daysUntil(from, to) {
   if (diff === 1) return 'Tomorrow';
   return `In ${diff} days`;
 }
-
+ 
 // ── Render ───────────────────────────────────────────────────
 const app = document.getElementById('app');
-
+ 
 function renderSetup(existing) {
   const cfg = existing || {};
   app.innerHTML = `
@@ -285,13 +291,13 @@ function renderSetup(existing) {
         <a href="https://www.merri-bek.vic.gov.au/waste-calendar26/" target="_blank" rel="noopener"
            style="color:#4ADE80; text-decoration:none;">council waste calendar</a>.
       </p>
-
+ 
       <div class="field">
         <label>Your address</label>
         <input type="text" id="f-address" placeholder="e.g. 222 Albert Street Brunswick 3056"
                value="${cfg.address || ''}">
       </div>
-
+ 
       <div class="field">
         <label>Collection day</label>
         <select id="f-day">
@@ -301,21 +307,21 @@ function renderSetup(existing) {
           ).join('')}
         </select>
       </div>
-
+ 
       <div class="field">
         <label>Next recycling collection date</label>
         <input type="date" id="f-recycling" value="${cfg.recyclingRef || ''}">
         <div class="hint">The next Thursday (or your collection day) when the yellow-lid bin goes out.</div>
       </div>
-
+ 
       <div class="field">
         <label>Next glass collection date</label>
         <input type="date" id="f-glass" value="${cfg.glassRef || ''}">
         <div class="hint">The next date when the purple-lid bin goes out.</div>
       </div>
-
+ 
       <button class="btn-save" id="btn-save">Save & View Dashboard</button>
-
+ 
       <div class="council-link">
         <a href="https://www.merri-bek.vic.gov.au/waste-calendar26/" target="_blank" rel="noopener">
           Look up your details on the council website →
@@ -323,39 +329,41 @@ function renderSetup(existing) {
       </div>
     </div>
   `;
-
+ 
   document.getElementById('btn-save').addEventListener('click', () => {
     const address = document.getElementById('f-address').value.trim();
     const dayOfWeek = parseInt(document.getElementById('f-day').value);
     const recyclingRef = document.getElementById('f-recycling').value;
     const glassRef = document.getElementById('f-glass').value;
-
+ 
     if (!address || !dayOfWeek || !recyclingRef || !glassRef) {
       alert('Please fill in all fields.');
       return;
     }
-
+ 
     const config = { address, dayOfWeek, recyclingRef, glassRef };
     saveConfig(config);
     renderDashboard(config);
   });
 }
-
+ 
 function renderDashboard(cfg) {
   const now = new Date();
   const today = new Date(now); today.setHours(0,0,0,0);
   const recyclingRef = parseDate(cfg.recyclingRef);
   const glassRef = parseDate(cfg.glassRef);
-
+ 
   // Calculate next collection for each bin
+  const nextCollDay = getNextCollectionDay(today, cfg.dayOfWeek);
   const binData = BIN_DEFS.map(bin => {
     const ref = bin.id === 'glass' ? glassRef : recyclingRef;
     const next = getNextCollection(bin, ref, cfg.dayOfWeek, today);
     const countdown = next ? daysUntil(today, next) : '—';
     const isSoon = countdown === 'Today' || countdown === 'Tomorrow';
-    return { ...bin, next, countdown, isSoon };
+    const thisWeek = next && next.getTime() === nextCollDay.getTime();
+    return { ...bin, next, countdown, isSoon, thisWeek };
   });
-
+ 
   // Upcoming weeks
   const weeks = [];
   let wd = getNextCollectionDay(today, cfg.dayOfWeek);
@@ -367,7 +375,7 @@ function renderDashboard(cfg) {
     weeks.push({ date: new Date(wd), bins, isNext: i === 0 });
     wd = new Date(wd.getTime() + 7 * DAY_MS);
   }
-
+ 
   // Is today collection day?
   const isCollectionDay = today.getDay() === cfg.dayOfWeek;
   const todayBins = isCollectionDay
@@ -376,9 +384,9 @@ function renderDashboard(cfg) {
         return !isNoCollection(today) && isCollectionWeek(today, ref, b.cycle);
       })
     : [];
-
+ 
   const shortDay = DAY_NAMES[cfg.dayOfWeek].slice(0, 3);
-
+ 
   app.innerHTML = `
     <div class="header">
       <div class="label">Merri-bek City Council</div>
@@ -392,7 +400,7 @@ function renderDashboard(cfg) {
       </div>
     </div>
     <div class="content">
-
+ 
       ${isCollectionDay && todayBins.length > 0 ? `
         <div class="today-banner">
           <span class="pulse" style="font-size:20px">📍</span>
@@ -404,29 +412,30 @@ function renderDashboard(cfg) {
           </div>
         </div>
       ` : ''}
-
+ 
       <div class="label" style="margin-bottom:12px">Upcoming Collections</div>
-
+ 
       ${binData.map(b => `
-        <div class="bin-card" ${b.isSoon ? `style="border-color:${b.color}33"` : ''}>
+        <div class="bin-card ${b.thisWeek ? 'this-week' : ''}"
+             style="--bin-color:${b.color}; ${b.isSoon && !b.thisWeek ? `border-color:${b.color}33` : ''}">
           <div class="accent-bar" style="background:${b.color}"></div>
           <div class="top-row">
             <div>
               <div class="bin-name">
-                <span style="font-size:17px">${b.emoji}</span>
+                <span style="font-size:18px">${b.emoji}</span>
                 ${b.name}
               </div>
               <div class="bin-meta">${b.freq} ${shortDay} · ${b.lid}</div>
               <div class="bin-date">${b.next ? formatDate(b.next) : '—'}</div>
             </div>
             <div class="countdown ${b.isSoon ? 'soon' : ''}"
-                 style="${b.isSoon ? `background:${b.color}18; color:${b.color}; border-color:${b.color}33;` : ''}">
-              ${b.countdown}
+                 style="${b.thisWeek || b.isSoon ? `background:${b.color}18; color:${b.color}; border-color:${b.color}33;` : ''}">
+              ${b.thisWeek ? '⬤ ' + b.countdown : b.countdown}
             </div>
           </div>
         </div>
       `).join('')}
-
+ 
       <div class="label" style="margin:28px 0 12px">Next 6 Weeks</div>
       <div class="timeline">
         ${weeks.map(w => `
@@ -444,7 +453,7 @@ function renderDashboard(cfg) {
           </div>
         `).join('')}
       </div>
-
+ 
       <div class="footer">
         Data based on Merri-bek City Council waste collection schedule.<br>
         No collection on: Christmas Day, New Year's Day, Good Friday, Anzac Day.
@@ -453,11 +462,11 @@ function renderDashboard(cfg) {
       </div>
     </div>
   `;
-
+ 
   document.getElementById('edit-address').addEventListener('click', () => renderSetup(cfg));
   document.getElementById('btn-settings').addEventListener('click', () => renderSetup(cfg));
 }
-
+ 
 // ── Init ─────────────────────────────────────────────────────
 const config = loadConfig();
 if (config && config.address && config.dayOfWeek && config.recyclingRef && config.glassRef) {
